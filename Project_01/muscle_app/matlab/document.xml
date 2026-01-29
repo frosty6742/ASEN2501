@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[classdef muscle_app < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                        matlab.ui.Figure
+        MuscleSensorDataCaptureGUILabel  matlab.ui.control.Label
+        NotCapturingDataLamp            matlab.ui.control.Lamp
+        NotCapturingDataLampLabel       matlab.ui.control.Label
+        FilenameEditField               matlab.ui.control.EditField
+        FilenameEditFieldLabel          matlab.ui.control.Label
+        StartDataCaptureButton          matlab.ui.control.Button
+        DataCaptureTimesEditField       matlab.ui.control.NumericEditField
+        DataCaptureTimesEditFieldLabel  matlab.ui.control.Label
+        StopDataStreamButton            matlab.ui.control.Button
+        PortDropDown                    matlab.ui.control.DropDown
+        PortDropDownLabel               matlab.ui.control.Label
+        StartDataStreamButton           matlab.ui.control.Button
+        NotConnectedLamp                matlab.ui.control.Lamp
+        NotConnectedLampLabel           matlab.ui.control.Label
+        ConnecttoArduinoButton          matlab.ui.control.Button
+        UIAxes                          matlab.ui.control.UIAxes
+    end
+
+    
+    properties (Access = private)
+        arduinoObj      % Arduino connection object
+        isRunning       % Boolean for live plotting
+        hLine           % Animated line object for live plotting
+        captureData     % Boolen for saving data
+        captureTime     % Final time for capturing data
+        plotColor       % Color for the animated line plot
+    end
+    
+    methods (Access = public)
+        
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app)
+            % Get list of available serial ports
+            availablePorts = serialportlist();  % Returns a list of available serial ports
+            
+            % If there are available ports, update the dropdown
+            if ~isempty(availablePorts)
+                app.PortDropDown.Items = availablePorts;  % Set the dropdown items to the list of ports
+                app.PortDropDown.Value = availablePorts{1};  % Optionally select the first port as default
+            else
+                app.PortDropDown.Items = {'No ports available'};  % If no ports found
+                app.PortDropDown.Value = 'No ports available';
+            end
+
+            % Set plot color to default red if not capturing data
+            app.plotColor = [1 0 0];
+
+            % Clear existing animated line if it exists
+            cla(app.UIAxes);
+            app.hLine = animatedline(app.UIAxes, 'Color', app.plotColor, 'LineWidth', 2);
+            xlabel(app.UIAxes, 'Time (s)');
+            ylabel(app.UIAxes, 'Sensor Value (V)');
+            title(app.UIAxes, 'Live Sensor Data');
+            grid(app.UIAxes, 'on');
+
+            % Don't automatically start capturing data
+            app.captureData = false;
+        end
+
+        % Button pushed function: ConnecttoArduinoButton
+        function ConnecttoArduinoButtonPushed(app, event)
+            % Get the port from the edit field
+            port = app.PortDropDown.Value;
+
+            % Connect to the arduino
+            try
+                % Try connecting to the Arduino Uno
+                app.arduinoObj = arduino(port);
+                app.NotConnectedLamp.Color = [0, 1, 0];  % Set to green
+                app.NotConnectedLampLabel.Text = 'Connected!';
+                app.NotConnectedLamp.Tag = "Connected Test";
+                fprintf("Ardunio Connected!\n")
+            catch
+                % Connection failed
+                app.NotConnectedLamp.Color = [1, 0, 0];  % Red (Failed)
+                app.NotConnectedLampLabel.Text = 'Not Connected';
+                warning('Could not connect to Arduino. Check the port and try again.');
+            end
+        end
+
+        % Button pushed function: StartDataStreamButton
+        function StartDataStreamButtonPushed(app, event)
+            % Begin streaming data to the live plot
+            app.isRunning = true; % Start data capture
+
+            % Clear existing animated line if it exists
+            cla(app.UIAxes);
+            app.hLine = animatedline(app.UIAxes, 'Color', app.plotColor, 'LineWidth', 2);
+            xlabel(app.UIAxes, 'Time (s)');
+            ylabel(app.UIAxes, 'Sensor Value (V)');
+            title(app.UIAxes, 'Live Sensor Data');
+            grid(app.UIAxes, 'on');
+
+            % Create empty vectors of time and voltage data for data
+            % capture
+            time_data = 0;
+            voltage_data = 0;
+
+            % Live plot
+            startTime = datetime('now');
+            while app.isRunning
+                % Read voltage
+                voltage = readVoltage(app.arduinoObj, 'A0');
+
+                % Get time
+                elapsedTime = seconds(datetime('now') - startTime);
+
+                % Save data if capturing 
+                if app.captureData
+                    if datetime('now') < app.captureTime
+                        time_data = [time_data; elapsedTime];
+                        voltage_data = [voltage_data; voltage];                        
+                    else
+                        % Stop capturing
+                        app.NotCapturingDataLamp.Color = [1 0 0];
+                        app.NotCapturingDataLampLabel.Text = 'Not Capturing';
+                        app.captureData = false;
+
+                        % Truncate and start at t = 0
+                        time_data = time_data(2:end);
+                        time_data = time_data - time_data(1);
+                        voltage_data = voltage_data(2:end);
+                        data = [time_data voltage_data];
+
+                        % Save to the specified filename
+                        data_folder = 'Data'; % Define the folder name
+
+                        % Check if the folder exists
+                        if ~isfolder(data_folder)
+                            mkdir(data_folder); % Create the folder if it doesn't exist
+                            fprintf('Folder "%s" created successfully.\n', data_folder);
+                        end
+
+                        % Save the data to the Data folder
+                        filePath = fullfile(data_folder, app.FilenameEditField.Value); 
+
+                        % Write headers and save data
+                        headers = {'Time (s)', 'Voltage (V)'};
+                        writecell(headers, filePath); % Write headers
+                        writematrix(data, filePath, 'WriteMode', 'append'); % Append data below headers
+                        
+                        fprintf('Data saved to %s\n', filePath);
+
+                        % Clear the time and voltage data
+                        time_data = 0;
+                        voltage_data = 0;
+
+                        % Set the plot color back
+                        app.plotColor = [1 0 0];
+                        app.hLine = animatedline(app.UIAxes, 'Color', app.plotColor, 'LineWidth', 2);
+                    end
+                end
+            
+                % Add new point to animated line
+                addpoints(app.hLine, elapsedTime, voltage);
+    
+                % Adjust axis limits dynamically
+                xlim(app.UIAxes, [max(0, elapsedTime - 10), elapsedTime]); % Keep last 10 sec
+                ylim(app.UIAxes, [0, 5]); % Adjust based on sensor voltage range
+            end
+        end
+
+        % Button pushed function: StopDataStreamButton
+        function StopDataStreamButtonPushed(app, event)
+            % Stop data stream
+            app.isRunning = false;
+        end
+
+        % Button pushed function: StartDataCaptureButton
+        function StartDataCaptureButtonPushed(app, event)
+            % Start capturing data for the specified time and save to a csv
+            % file in the Data folder
+            app.captureData = true;
+            app.captureTime = datetime('now') + seconds(app.DataCaptureTimesEditField.Value);
+            app.NotCapturingDataLamp.Color = [0 0 1];
+            app.NotCapturingDataLampLabel.Text = 'Capturing';
+            app.plotColor = [0 0 1];
+            app.hLine = animatedline(app.UIAxes, 'Color', app.plotColor, 'LineWidth', 2);
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [100 100 790 520];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create UIAxes
+            app.UIAxes = uiaxes(app.UIFigure);
+            title(app.UIAxes, 'Title')
+            xlabel(app.UIAxes, 'X')
+            ylabel(app.UIAxes, 'Y')
+            zlabel(app.UIAxes, 'Z')
+            app.UIAxes.Position = [19 17 534 335];
+
+            % Create ConnecttoArduinoButton
+            app.ConnecttoArduinoButton = uibutton(app.UIFigure, 'push');
+            app.ConnecttoArduinoButton.ButtonPushedFcn = createCallbackFcn(app, @ConnecttoArduinoButtonPushed, true);
+            app.ConnecttoArduinoButton.Position = [60 392 147 32];
+            app.ConnecttoArduinoButton.Text = 'Connect to Arduino';
+
+            % Create NotConnectedLampLabel
+            app.NotConnectedLampLabel = uilabel(app.UIFigure);
+            app.NotConnectedLampLabel.HorizontalAlignment = 'right';
+            app.NotConnectedLampLabel.Position = [74 362 85 22];
+            app.NotConnectedLampLabel.Text = 'Not Connected';
+
+            % Create NotConnectedLamp
+            app.NotConnectedLamp = uilamp(app.UIFigure);
+            app.NotConnectedLamp.Position = [174 362 20 20];
+            app.NotConnectedLamp.Color = [0.851 0.3255 0.098];
+
+            % Create StartDataStreamButton
+            app.StartDataStreamButton = uibutton(app.UIFigure, 'push');
+            app.StartDataStreamButton.ButtonPushedFcn = createCallbackFcn(app, @StartDataStreamButtonPushed, true);
+            app.StartDataStreamButton.Position = [583 298 143 32];
+            app.StartDataStreamButton.Text = 'Start Data Stream';
+
+            % Create PortDropDownLabel
+            app.PortDropDownLabel = uilabel(app.UIFigure);
+            app.PortDropDownLabel.HorizontalAlignment = 'right';
+            app.PortDropDownLabel.Position = [63 437 27 22];
+            app.PortDropDownLabel.Text = 'Port';
+
+            % Create PortDropDown
+            app.PortDropDown = uidropdown(app.UIFigure);
+            app.PortDropDown.Position = [105 437 100 22];
+
+            % Create StopDataStreamButton
+            app.StopDataStreamButton = uibutton(app.UIFigure, 'push');
+            app.StopDataStreamButton.ButtonPushedFcn = createCallbackFcn(app, @StopDataStreamButtonPushed, true);
+            app.StopDataStreamButton.Position = [583 246 143 31];
+            app.StopDataStreamButton.Text = 'Stop Data Stream';
+
+            % Create DataCaptureTimesEditFieldLabel
+            app.DataCaptureTimesEditFieldLabel = uilabel(app.UIFigure);
+            app.DataCaptureTimesEditFieldLabel.HorizontalAlignment = 'right';
+            app.DataCaptureTimesEditFieldLabel.Position = [560 173 123 22];
+            app.DataCaptureTimesEditFieldLabel.Text = 'Data Capture Time (s)';
+
+            % Create DataCaptureTimesEditField
+            app.DataCaptureTimesEditField = uieditfield(app.UIFigure, 'numeric');
+            app.DataCaptureTimesEditField.Position = [698 173 52 22];
+
+            % Create StartDataCaptureButton
+            app.StartDataCaptureButton = uibutton(app.UIFigure, 'push');
+            app.StartDataCaptureButton.ButtonPushedFcn = createCallbackFcn(app, @StartDataCaptureButtonPushed, true);
+            app.StartDataCaptureButton.Position = [560 95 115 22];
+            app.StartDataCaptureButton.Text = 'Start Data Capture';
+
+            % Create FilenameEditFieldLabel
+            app.FilenameEditFieldLabel = uilabel(app.UIFigure);
+            app.FilenameEditFieldLabel.HorizontalAlignment = 'right';
+            app.FilenameEditFieldLabel.Position = [560 133 54 22];
+            app.FilenameEditFieldLabel.Text = 'Filename';
+
+            % Create FilenameEditField
+            app.FilenameEditField = uieditfield(app.UIFigure, 'text');
+            app.FilenameEditField.Position = [629 133 100 22];
+
+            % Create NotCapturingDataLampLabel
+            app.NotCapturingDataLampLabel = uilabel(app.UIFigure);
+            app.NotCapturingDataLampLabel.HorizontalAlignment = 'right';
+            app.NotCapturingDataLampLabel.Position = [560 56 108 22];
+            app.NotCapturingDataLampLabel.Text = 'Not Capturing Data';
+
+            % Create NotCapturingDataLamp
+            app.NotCapturingDataLamp = uilamp(app.UIFigure);
+            app.NotCapturingDataLamp.Position = [683 56 20 20];
+            app.NotCapturingDataLamp.Color = [1 0 0];
+
+            % Create MuscleSensorDataCaptureGUILabel
+            app.MuscleSensorDataCaptureGUILabel = uilabel(app.UIFigure);
+            app.MuscleSensorDataCaptureGUILabel.BackgroundColor = [0.8 0.8 0.8];
+            app.MuscleSensorDataCaptureGUILabel.FontSize = 24;
+            app.MuscleSensorDataCaptureGUILabel.Position = [212 476 368 31];
+            app.MuscleSensorDataCaptureGUILabel.Text = 'Muscle Sensor Data Capture GUI';
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = muscle_app
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @startupFcn)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end]]></w:t></w:r></w:p></w:body></w:document>

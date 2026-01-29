@@ -1,0 +1,187 @@
+% filepath: ../musclelab/musclelab.m
+dataFolder = 'Data/';
+files = dir(fullfile(dataFolder, '*.txt'));
+
+s = settings;
+s.matlab.appearance.figure.GraphicsTheme.TemporaryValue = "light";
+
+plotsFolder = 'plots';
+if ~exist(plotsFolder, 'dir')
+   mkdir(plotsFolder);
+end
+
+% Figure for each file
+for i = 1:length(files)
+    filePath = fullfile(dataFolder, files(i).name);
+    data = readtable(filePath, 'Delimiter', ',');
+    
+    time = data{:, 1};
+    voltage = data{:, 2};
+
+    [~, name, ~] = fileparts(files(i).name);
+
+    f = figure;
+    plot(time, voltage, 'b-');
+    hold on;
+    xlabel('Time (s)');
+    ylabel('Voltage (V)');
+    title(sprintf('%s', name));
+    legend('Plot', 'Data Points');
+    grid on;
+
+
+    % Peak detection algo: 
+    % find start and stop of voltage spikes by throwing a threshold around a point and seeing if the next point
+    % is outside that threshold
+    voltageThreshold = 0.2;  % Threshold for spike detection
+    peakStartAndStop = [];   % [start_time, stop_time; start_time, stop_time; ...]
+    inSpike = false;
+    spikeStart = 0;
+
+    if i==1
+        voltageThreshold = 0.15;  % Smaller value works better for the first graph
+    end
+
+    if i == 6
+        voltageThreshold = 0.13;  % Adjust threshold for specific file if needed
+    end
+    
+    for k = 2:length(voltage)
+        % Detect transition from below to above threshold (spike start)
+        if ~inSpike && voltage(k) > voltageThreshold && voltage(k-1) <= voltageThreshold
+            spikeStart = time(k-1);
+            inSpike = true;
+        % Detect transition from above to below threshold (spike end)
+        elseif inSpike && voltage(k) <= voltageThreshold && voltage(k-1) > voltageThreshold
+            spikeStop = time(k);
+            peakStartAndStop = [peakStartAndStop; spikeStart, spikeStop];
+            inSpike = false;
+        end
+    end
+    
+    % Case: Spike extends to end of data
+    if inSpike
+        peakStartAndStop = [peakStartAndStop; spikeStart, time(end)];
+    end
+
+    % After calculating peakStartAndStop, filter by amplitude
+    minAmplitude = 0.4;  % Only keep spikes with max voltage > this value
+    if i==1
+        minAmplitude = 0.25;  % Only keep spikes with max voltage > this value
+    end
+    validSpikes = [];
+
+    for k = 1:size(peakStartAndStop, 1)
+        spikeRegion = voltage(time >= peakStartAndStop(k, 1) & time <= peakStartAndStop(k, 2));
+        if max(spikeRegion) > minAmplitude
+            validSpikes = [validSpikes; peakStartAndStop(k, :)];
+        end
+    end
+    peakStartAndStop = validSpikes;
+
+    % Metrics for each activation
+    activationMetrics = [];
+    activationStdTimes = [];
+    activationStdValues = [];
+    activationMeanValues = [];
+    if ~isempty(peakStartAndStop)
+        for k = 1:size(peakStartAndStop, 1)
+            % Get voltage data within activation window
+            activationMask = time >= peakStartAndStop(k, 1) & time <= peakStartAndStop(k, 2);
+            activationVoltage = voltage(activationMask);
+            activationTime = time(activationMask);
+            
+            meanVoltage = mean(activationVoltage);
+            stdVoltage = std(activationVoltage);
+            rangeVoltage = max(activationVoltage) - min(activationVoltage);
+            
+            [~, peakIdx] = max(activationVoltage);
+            timeToFeak = activationTime(peakIdx) - peakStartAndStop(k, 1);
+            activationMidTime = mean(activationTime);
+            activationStdTimes = [activationStdTimes; activationMidTime];
+            activationStdValues = [activationStdValues; stdVoltage];
+            activationMeanValues = [activationMeanValues; meanVoltage];
+            
+            activationMetrics = [activationMetrics; ...
+                peakStartAndStop(k, 1), peakStartAndStop(k, 2), ...
+                meanVoltage, stdVoltage, rangeVoltage, timeToFeak];
+        end
+        
+        % Display metrics table in the cli
+        metricsTable = table(...
+            activationMetrics(:, 1), ...
+            activationMetrics(:, 2), ...
+            activationMetrics(:, 3), ...
+            activationMetrics(:, 4), ...
+            activationMetrics(:, 5), ...
+            activationMetrics(:, 6), ...
+            'VariableNames', {'Start_Time_s', 'Stop_Time_s', 'Mean_Voltage_V', 'Std_Dev_V', 'Range_V', 'Time_to_Peak_s'});
+        disp(['File: ', files(i).name]);
+        disp(metricsTable);
+        disp(' ');
+        
+        % Export metrics to a CSV
+        [~, name, ~] = fileparts(files(i).name);
+        csvFilename = fullfile(plotsFolder, [name, '_metrics.csv']);
+        writetable(metricsTable, csvFilename);
+
+        % standard deviation and mean vs peak number for activations and export
+        if ~isempty(activationStdTimes)
+            g = figure;
+            numPeaks = length(activationStdValues);
+            peakNumbers = 1:numPeaks;
+            plot(peakNumbers, activationStdValues, 'o-','LineWidth',1.5);
+            hold on;
+            plot(peakNumbers, activationMeanValues, 's-','LineWidth',1.5);
+            
+            % Add data values for each point
+            yRange = max([activationStdValues; activationMeanValues]) - min([activationStdValues; activationMeanValues]);
+            offset = yRange * 0.05;  % 5% of y-range for spacing ( jsut moves text up)
+            for j = 1:numPeaks
+                text(j, activationStdValues(j) + offset, sprintf('%.3f', activationStdValues(j)), ...
+                    'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 8);
+                text(j, activationMeanValues(j) - offset, sprintf('%.3f', activationMeanValues(j)), ...
+                    'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', 'FontSize', 8);
+            end
+            
+            xlabel('Peak Number');
+            ylabel('Voltage (V)');
+            title(sprintf('%s - Std Dev and Mean vs Peak Number', name));
+            legend('Std Dev', 'Mean Voltage');
+            grid on;
+            xticks(peakNumbers);
+            stdPdf = fullfile(plotsFolder, [name, '_std_vs_time.pdf']);
+            exportgraphics(g, stdPdf, 'ContentType', 'vector');
+            close(g);
+        end
+    end
+
+    % Mark the spike start and stop points on the graph
+    if ~isempty(peakStartAndStop)
+        scatter(peakStartAndStop(:, 1), interp1(time, voltage, peakStartAndStop(:, 1)), ...
+                'g', 'filled', 'SizeData', 100, 'DisplayName', 'Spike Start');
+        scatter(peakStartAndStop(:, 2), interp1(time, voltage, peakStartAndStop(:, 2)), ...
+                'b', 'filled', 'SizeData', 100, 'DisplayName', 'Spike Stop');
+        
+        % Add peak numbers at the peaks
+        for k = 1:size(peakStartAndStop, 1)
+            activationMask = time >= peakStartAndStop(k, 1) & time <= peakStartAndStop(k, 2);
+            activationVoltage = voltage(activationMask);
+            activationTime = time(activationMask);
+            [peakVoltage, peakIdx] = max(activationVoltage);
+            peakTime = activationTime(peakIdx);
+            timeToPeak = peakTime - peakStartAndStop(k, 1);
+            text(peakTime, peakVoltage, sprintf('Peak %d (%.3f s)', k, timeToPeak), ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 10, 'FontWeight', 'bold');
+        end
+        
+        legend;
+    end
+    
+    pdfFilename = fullfile(plotsFolder, [name, '.pdf']);
+    
+    % Export the current figure to PDF
+    exportgraphics(f, pdfFilename, 'ContentType', 'vector');
+
+    hold off;
+end
