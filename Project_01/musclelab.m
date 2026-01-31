@@ -84,6 +84,7 @@ for i = 1:length(files)
     activationStdTimes = [];
     activationStdValues = [];
     activationMeanValues = [];
+    activationRangeValues = [];
     if ~isempty(peakStartAndStop)
         for k = 1:size(peakStartAndStop, 1)
             % Get voltage data within activation window
@@ -101,6 +102,7 @@ for i = 1:length(files)
             activationStdTimes = [activationStdTimes; activationMidTime];
             activationStdValues = [activationStdValues; stdVoltage];
             activationMeanValues = [activationMeanValues; meanVoltage];
+            activationRangeValues = [activationRangeValues; rangeVoltage];
             
             activationMetrics = [activationMetrics; ...
                 peakStartAndStop(k, 1), peakStartAndStop(k, 2), ...
@@ -133,21 +135,42 @@ for i = 1:length(files)
             plot(peakNumbers, activationStdValues, 'o-','LineWidth',1.5);
             hold on;
             plot(peakNumbers, activationMeanValues, 's-','LineWidth',1.5);
+            if ~isempty(activationRangeValues)
+                plot(peakNumbers, activationRangeValues, 'd-','LineWidth',1.5);
+            end
             
             % Add data values for each point
-            yRange = max([activationStdValues; activationMeanValues]) - min([activationStdValues; activationMeanValues]);
-            offset = yRange * 0.05;  % 5% of y-range for spacing ( jsut moves text up)
+            if ~isempty(activationRangeValues)
+                yRange = max([activationStdValues; activationMeanValues; activationRangeValues]) - min([activationStdValues; activationMeanValues; activationRangeValues]);
+            else
+                yRange = max([activationStdValues; activationMeanValues]) - min([activationStdValues; activationMeanValues]);
+            end
+            % vertical offset as fraction of y-range
+            offset = yRange * 0.01;
+            % horizontal offset 
+            labelXOffset = 0.02;  % change this value to move labels further right/left
             for j = 1:numPeaks
-                text(j, activationStdValues(j) + offset, sprintf('%.3f', activationStdValues(j)), ...
-                    'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 8);
-                text(j, activationMeanValues(j) - offset, sprintf('%.3f', activationMeanValues(j)), ...
-                    'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', 'FontSize', 8);
+                % Std dev: right of point, slightly above
+                text(j + labelXOffset, activationStdValues(j) + offset, sprintf('%.3f', activationStdValues(j)), ...
+                    'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom', 'FontSize', 8);
+                % Mean: right of point, slightly below
+                text(j + labelXOffset, activationMeanValues(j) - offset, sprintf('%.3f', activationMeanValues(j)), ...
+                    'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'FontSize', 8);
+                % Range: right of point, above both
+                if ~isempty(activationRangeValues)
+                    text(j + labelXOffset, activationRangeValues(j) + offset*2, sprintf('%.3f', activationRangeValues(j)), ...
+                        'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom', 'FontSize', 8);
+                end
             end
             
             xlabel('Peak Number');
             ylabel('Voltage (V)');
-            title(sprintf('%s - Std Dev and Mean vs Peak Number', name));
-            legend('Std Dev', 'Mean Voltage');
+            title(sprintf('%s - Std Dev, Mean and Range vs Peak Number', name));
+            if ~isempty(activationRangeValues)
+                legend('Std Dev', 'Mean Voltage', 'Range');
+            else
+                legend('Std Dev', 'Mean Voltage');
+            end
             grid on;
             xticks(peakNumbers);
             stdPdf = fullfile(plotsFolder, [name, '_std_vs_time.pdf']);
