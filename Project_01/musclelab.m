@@ -1,11 +1,12 @@
 % filepath: ../musclelab/musclelab.m
-dataFolder = 'Data/';
+scriptDir = fileparts(mfilename('fullpath'));
+dataFolder = fullfile(scriptDir, 'Data');
 files = dir(fullfile(dataFolder, '*.txt'));
 
 s = settings;
 s.matlab.appearance.figure.GraphicsTheme.TemporaryValue = "light";
 
-plotsFolder = 'plots';
+plotsFolder = fullfile(scriptDir, 'plots');
 if ~exist(plotsFolder, 'dir')
    mkdir(plotsFolder);
 end
