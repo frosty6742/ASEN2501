@@ -1,0 +1,34 @@
+
+
+
+yyyy/mmdd(or -ddd)/hh.h):2024/-284/12.0LT  geog Lat/Long/Alt= 40.0/ 255.0/ 300.0
+
+IRIcor2 is used for topside Ne profile
+OTSB2012 plasmasphere model w/o  plasmapause
+URSI maps are used for the F2 peak density (NmF2)
+foF2 STORM model is turned on 
+Shubin2015 model is used for F2 peak height (hmF2)
+ABT-2009 option is used for the bottomside thickness parameter B0
+Scotto-97 no L   option is used for the F1 occurrence probability
+foE auroral storm model is turned off
+IRI-1990   option is used for D-region
+TBT-2012 with solar dependence is used for the electron temperature
+TBKS2021 option is used for the ion temperature
+RBV10+TBT15 option is used for ion composition
+CGM coordinate computation is turned off
+
+Peak Densities/cm-3: NmF2=1453502.9   NmF1= 310995.4   NmE= 167861.9
+Peak Heights/km:     hmF2=   311.78   hmF1=     0.00   hmE=   110.00
+
+Solar Zenith Angle/degree                              47.5
+Dip (Magnetic Inclination)/degree                      66.10
+Modip (Modified Dip)/degree                            52.81
+Solar Sunspot Number (12-months running mean) Rz12    112.5           
+Ionospheric-Effective Solar Index IG12                128.9           
+Solar radio flux F10.7 (daily)                        215.6           
+Solar radio flux F10.7 (81-day average)               207.2           
+
+-
+   H   ELECTRON DENSITY   TEMPERATURES      ION PERCENTAGES[%]*10    1E16m-2
+   km  Ne/cm-3 Ne/NmF2 Tn/K  Ti/K  Te/K  O+  N+  H+ He+ O2+ NO+ Clust TEC t/%
+    0.0     -1 -1.000    -1    -1    -1  -1  -1  -1  -1  -1  -1  -1  -1.0  -1
