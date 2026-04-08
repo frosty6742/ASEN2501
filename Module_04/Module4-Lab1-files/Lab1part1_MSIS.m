@@ -49,12 +49,12 @@ semilogx(ax2,data1.density.O,data1.altkm,'linewidth',1.5);
 hold(ax2,'on');
 
 %
-semilogx(ax2,data1.density.N2,data1.altkm,'linewidth',1.5);
-semilogx(ax2,data1.density.O2,data1.altkm,'linewidth',1.5);
-semilogx(ax2,data1.density.Ar,data1.altkm,'linewidth',1.5);
-semilogx(ax2,data1.density.He,data1.altkm,'linewidth',1.5);
-semilogx(ax2,data1.density.H,data1.altkm,'linewidth',1.5);
-semilogx(ax2,data1.density.N,data1.altkm,'linewidth',1.5);
+semilogx(ax2, data1.density.N2, data1.altkm, 'linewidth',1.5);
+semilogx(ax2, data1.density.O2, data1.altkm, 'linewidth',1.5);
+semilogx(ax2, data1.density.Ar, data1.altkm, 'linewidth',1.5);
+semilogx(ax2, data1.density.He, data1.altkm, 'linewidth',1.5);
+semilogx(ax2, data1.density.H, data1.altkm, 'linewidth',1.5);
+semilogx(ax2, data1.density.N, data1.altkm, 'linewidth',1.5);
 
 legend(ax2,'Oxygen 1','Nitrogen 2','Oxygen 2','Argon','Helium','Hydrogen','Nitrogen 1')
 
@@ -81,7 +81,7 @@ ax3 = axes;
 % plot the temperature profile
 
 %XX
-plot(ax3,data1.tempK, data1.altkm,'linewidth',1.5);
+plot(ax3,data1.tempK, data1.altkm, 'linewidth',1.5);
 
 % label your plots! 
 %XX
