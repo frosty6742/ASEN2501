@@ -32,13 +32,11 @@ ax1 = axes;
 semilogx(ax1,data1.density.mass,data1.altkm,'linewidth',2);
 
 % label your plots! You should always have these three things:
-
 xlabel(ax1,'Mass density (g/cm^3)');
 ylabel(ax1,'Altitude (km)');
 title(ax1,sprintf('Mass density for %s',datetime(data1.time)));
 
 % change the font size
-
 set(ax1,'Fontsize',14);                          % the default tiny font drives me crazy
 
 
@@ -49,28 +47,29 @@ ax2 = axes;
 
 semilogx(ax2,data1.density.O,data1.altkm,'linewidth',1.5);
 hold(ax2,'on');
-XX
-XX
-XX
-XX
-XX
-XX
+
+%
+semilogx(ax2,data1.density.N2,data1.altkm,'linewidth',1.5);
+semilogx(ax2,data1.density.O2,data1.altkm,'linewidth',1.5);
+semilogx(ax2,data1.density.Ar,data1.altkm,'linewidth',1.5);
+semilogx(ax2,data1.density.He,data1.altkm,'linewidth',1.5);
+semilogx(ax2,data1.density.H,data1.altkm,'linewidth',1.5);
+semilogx(ax2,data1.density.N,data1.altkm,'linewidth',1.5);
 
 legend(ax2,'Oxygen 1','Nitrogen 2','Oxygen 2','Argon','Helium','Hydrogen','Nitrogen 1')
 
 % label your plots! 
-
 xlabel(ax2,'Number density (#/cm^3)');
-XX
-XX
+
+%
+ylabel(ax2,'Altitude (km)');
+title(ax2,sprintf('Number densities for %s',datetime(data1.time)));
 
 % change the font size
-
 set(ax2,'Fontsize',14);
 
 % you'll get a weird plot with 10^-38 values, so set the plot limits to the
 % range we care about
-
 set(ax2,'xlim',[1e0 1e20]);
 
 
@@ -81,16 +80,16 @@ ax3 = axes;
 
 % plot the temperature profile
 
-XX
+%XX
+plot(ax3,data1.tempK, data1.altkm,'linewidth',1.5);
 
 % label your plots! 
-
-XX
-XX
-XX
+%XX
+xlabel(ax3,'Temperature (K)');
+ylabel(ax3,'Altitude (km)');
+title(ax3,sprintf('Temperature profile for %s',datetime(data1.time)));
 
 % change the font size
-
 set(ax3,'Fontsize',14);
 
 
@@ -121,24 +120,26 @@ ax43 = subplot(1,3,3);
 
 semilogx(ax41,data1.density.mass,data1.altkm,'linewidth',1.5);
 hold(ax41,'on');
-XX
+semilogx(ax41, data2.density.mass, data2.altkm, 'linewidth',1.5);
+%XX
 
 legend(ax41,'Noon','Midnight');
 
 % label your plots! 
-
-XX
-XX
-XX
+xlabel(ax41,'Mass density (g/cm^3)');
+ylabel(ax41,'Altitude (km)');
+title(ax41,sprintf('Mass density comparison for %s',datetime(data1.time)));
+%XX
+%XX
+%XX
 
 % change the font size
-
 set(ax41,'Fontsize',14);
 
 % NUMBER DENSITY: just do N2, O, and He for both data1 and data2.
-
 semilogx(ax42,data1.density.N2,data1.altkm,'linewidth',1.5);
 hold(ax42,'on');
+semilogx(ax42, data1.density.O, data1.altkm, 'linewidth',1.5);
 XX
 XX
 XX
