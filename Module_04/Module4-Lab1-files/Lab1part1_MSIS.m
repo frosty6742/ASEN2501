@@ -9,6 +9,8 @@
 %
 % -----------------------------------------------------
 
+% Group 20
+
 clear; close all; clc
 
 s = settings;
@@ -140,39 +142,48 @@ set(ax41,'Fontsize',14);
 semilogx(ax42,data1.density.N2,data1.altkm,'linewidth',1.5);
 hold(ax42,'on');
 semilogx(ax42, data1.density.O, data1.altkm, 'linewidth',1.5);
-XX
-XX
-XX
-XX
-XX
+semilogx(ax42, data1.density.He, data1.altkm, 'linewidth',1.5);
+
+semilogx(ax42, data2.density.N2, data2.altkm, 'linewidth',1.5);
+semilogx(ax42, data2.density.O, data2.altkm, 'linewidth',1.5);
+semilogx(ax42, data2.density.He, data2.altkm, 'linewidth',1.5);
+% XX
+% XX
+% XX
+% XX
+% XX
 
 legend(ax42,'N2 Noon','N2 Midnight','O Noon','O Midnight','He Noon','He Midnight');
 
 % label your plots! 
-
-XX
-XX
-XX
+xlabel(ax42,'Number density (count/cm^3)');
+ylabel(ax42,'Altitude (km)');
+title(ax42,sprintf('Number density comparison for %s',datetime(data1.time)));
+% XX
+% XX
+% XX
 
 set(ax42,'xlim',[1e0 1e20]);
 
 % change the font size
-
 set(ax42,'Fontsize',14);
 
 % TEMPERATURE: plot tempK for both data1 and data2
-
 plot(ax43,data1.tempK,data1.altkm,'linewidth',1.5);
 hold(ax43,'on');
-XX
+plot(ax43, data2.tempK, data2.altkm, 'linewidth',1.5);
+%XX
 
 legend(ax43,'Noon','Midnight');
 
 % label your plots! 
+xlabel(ax43,'Temperature (K)');
+ylabel(ax43,'Altitude (km)');
+title(ax43,sprintf('Temperature comparison for %s',datetime(data1.time)));
 
-XX
-XX
-XX
+% XX
+% XX
+% XX
 
 % change the font size
 
@@ -191,65 +202,77 @@ ax53 = subplot(1,3,3);
 
 semilogx(ax51,data1.density.mass,data1.altkm,'linewidth',1.5);
 hold(ax51,'on');
-XX
-XX
+semilogx(ax51, data3.density.mass, data3.altkm, 'linewidth',1.5);
+semilogx(ax51, data4.density.mass, data4.altkm, 'linewidth',1.5);
+%XX
+%XX
 
 legend(ax51,'40 deg','0 deg','80 deg');
 
 % label your plots! 
-
-XX
-XX
-XX
+xlabel(ax51,'Mass density (g/cm^3)');
+ylabel(ax51,'Altitude (km)');
+title(ax51,sprintf('Mass density comparison for %s',datetime(data1.time)));
+%XX
+%XX
+%XX
 
 % change the font size
-
 set(ax51,'Fontsize',14);
 
 % NUMBER DENSITY: just do N2, O, and He for data1, data3, and data4
-
 semilogx(ax52,data1.density.N2,data1.altkm,'linewidth',1.5);
 hold(ax52,'on');
-XX
-XX
-XX
-XX
-XX
-XX
-XX
+semilogx(ax52, data1.density.O, data1.altkm, 'linewidth',1.5);
+semilogx(ax52, data1.density.He, data1.altkm, 'linewidth',1.5);
+
+semilogx(ax52, data3.density.N2, data3.altkm, 'linewidth',1.5);
+semilogx(ax52, data3.density.O, data3.altkm, 'linewidth',1.5);
+semilogx(ax52, data3.density.He, data3.altkm, 'linewidth',1.5);
+
+semilogx(ax52, data4.density.N2, data4.altkm, 'linewidth',1.5);
+semilogx(ax52, data4.density.O, data4.altkm, 'linewidth',1.5);
+semilogx(ax52, data4.density.He, data4.altkm, 'linewidth',1.5);
+% XX
+% XX
+% XX
+% XX
+% XX
+% XX
+% XX
 
 legend(ax52,'N2 40 deg','N2 0 deg','N2 80 deg','O 40 deg','O 0 deg','O 80 deg',...
     'He 40 deg','He 0 deg','He 80 deg');
 
 % label your plots! 
 
-XX
-XX
-XX
+xlabel(ax52,'Number density (count/cm^3)');
+ylabel(ax52,'Altitude (km)');
+title(ax52,sprintf('Number density comparison for %s',datetime(data1.time)));
 
 set(ax52,'xlim',[1e0 1e20]);
 
 % change the font size
-
 set(ax52,'Fontsize',14);
 
 % TEMPERATURE: for data1, data3, and data4
-
 plot(ax53,data1.tempK,data1.altkm,'linewidth',1.5);
 hold(ax53,'on');
-XX
-XX
+plot(ax53, data3.tempK, data3.altkm, 'linewidth',1.5);
+plot(ax53, data4.tempK, data4.altkm, 'linewidth',1.5);
+%XX
+%XX
 
 legend(ax53,'40 deg','0 deg','80 deg');
 
 % label your plots! 
 
-XX
-XX
-XX
+xlabel(ax53,'Temperature (K)');
+ylabel(ax53,'Altitude (km)');
+title(ax53,sprintf('Temperature comparison for %s',datetime(data1.time)));
+
 
 % change the font size
-
 set(ax53,'Fontsize',14);
 
 
@@ -265,58 +288,67 @@ ax63 = subplot(1,3,3);
 
 semilogx(ax61,data1.density.mass,data1.altkm,'linewidth',1.5);
 hold(ax61,'on');
-XX
+semilogx(ax61, data5.density.mass, data5.altkm, 'linewidth',1.5);
+%XX
 
 legend(ax61,'January 2020','July 2022');
 
 % label your plots! 
+xlabel(ax61,'Mass density (g/cm^3)');
+ylabel(ax61,'Altitude (km)');
+title(ax61,sprintf('Mass density comparison for %s',datetime(data1.time)));
 
-XX
-XX
-XX
+% XX
+% XX
+% XX
 
 % change the font size
-
 set(ax61,'Fontsize',14);
 
 % NUMBER DENSITY: just do N2, O, and He
-
 semilogx(ax62,data1.density.N2,data1.altkm,'linewidth',1.5);
 hold(ax62,'on');
-XX
-XX
-XX
-XX
-XX
+semilogx(ax62, data1.density.O, data1.altkm, 'linewidth',1.5);
+semilogx(ax62, data1.density.He, data1.altkm, 'linewidth',1.5);
+
+semilogx(ax62, data5.density.N2, data5.altkm, 'linewidth',1.5);
+semilogx(ax62, data5.density.O, data5.altkm, 'linewidth',1.5);
+semilogx(ax62, data5.density.He, data5.altkm, 'linewidth',1.5);
 
 legend(ax62,'N2 Winter','N2 Summer','O Winter','O Summer',...
     'He Winter','He Summer');
 
 % label your plots! 
+xlabel(ax62,'Number density (count/cm^3)');
+ylabel(ax62,'Altitude (km)');
+title(ax62,sprintf('Number density comparison for %s',datetime(data1.time)));
 
-XX
-XX
-XX
+% XX
+% XX
+% XX
 
 set(ax62,'xlim',[1e0 1e20]);
 
 % change the font size
-
 set(ax62,'Fontsize',14);
 
 % TEMPERATURE: plot for data1 and data5
-
 plot(ax63,data1.tempK,data1.altkm,'linewidth',1.5);
 hold(ax63,'on');
-XX
+plot(ax63, data5.tempK, data5.altkm, 'linewidth',1.5);
+%XX
 
 legend(ax63,'January 2020','July 2022');
 
 % label your plots! 
 
-XX
-XX
-XX
+xlabel(ax63,'Temperature (K)');
+ylabel(ax63,'Altitude (km)');
+title(ax63,sprintf('Temperature comparison for %s',datetime(data1.time)));
+
+% XX
+% XX
+% XX
 
 % change the font size
 
