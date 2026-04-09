@@ -11,6 +11,12 @@
 
 clear; close all; clc
 
+% ensure plots directory exists at workspace root
+plotsDir = fullfile(pwd,'plots');
+if ~exist(plotsDir,'dir')
+    mkdir(plotsDir);
+end
+
 %% Load the first profiles from your downloaded IRI files
 
 % This function parses the data in the file into the appropriate columns.
@@ -37,6 +43,9 @@ XX
 % change the font size
 
 set(ax1,'Fontsize',14);                          % the default tiny font drives me crazy
+
+% export figure
+saveas(h1, fullfile(plotsDir,'Lab1part2_IRI_fig1_electron_density.png'));
 
 
 %% Q3.2: plot the number densities of ion species
@@ -80,6 +89,9 @@ set(ax2,'Fontsize',14);
 
 set(ax2,'xlim',[1e0 1e6]);
 
+% export figure
+saveas(h2, fullfile(plotsDir,'Lab1part2_IRI_fig2_ion_number_densities.png'));
+
 
 %% Q3.3: plot the temperature profiles 
 
@@ -104,6 +116,9 @@ XX
 % change the font size
 
 set(ax3,'Fontsize',14);
+
+% export figure
+saveas(h3, fullfile(plotsDir,'Lab1part2_IRI_fig3_temperatures.png'));
 
 
 %% Load the other data files
@@ -198,6 +213,9 @@ XX
 
 set(ax43,'Fontsize',14);
 
+% export subplot figure
+saveas(h4, fullfile(plotsDir,'Lab1part2_IRI_fig4_day_night_comparison.png'));
+
 
 %% latitude comparison: data1, data3, data4
 
@@ -281,6 +299,9 @@ XX
 
 set(ax53,'Fontsize',14);
 
+% export subplot figure
+saveas(h5, fullfile(plotsDir,'Lab1part2_IRI_fig5_latitude_comparison.png'));
+
 
 %% summer / winter comparison: data1 and data5
 
@@ -355,6 +376,9 @@ XX
 % change the font size
 
 set(ax63,'Fontsize',14);
+
+% export subplot figure
+saveas(h6, fullfile(plotsDir,'Lab1part2_IRI_fig6_summer_winter_comparison.png'));
 
 
 %% END
