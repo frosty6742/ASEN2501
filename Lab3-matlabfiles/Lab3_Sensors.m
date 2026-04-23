@@ -67,9 +67,11 @@ disp(sprintf('Standard deviations: %.2f, %2.f, %.2f m/s^2\n',stdx,stdy,stdz));
 % confirm that a_total is the vector norm of the three components:
 a_vecnorm = sqrt(data1.ax.^2 + data1.ay.^2 + data1.az.^2);
 
-plot(ax12,data1.time,data1.atotal,'k');
+plot(ax12,data1.time,data1.atotal,'r', 'LineWidth', 0.75);
 hold(ax12,'on');
 plot(ax12,data1.time,a_vecnorm,'b');
+
+
 
 legend(ax12,'a total from device','a vecnorm');
 
@@ -87,11 +89,11 @@ saveas(h1, fullfile(plotsDir,'M4L3_Fig1_accelerometer.png'));
 
 %% Gyroscope
 
-data2 = readtable('gyroscope_2025-10-19_13-58-15.csv');
+data2 = readtable('gyroscope.csv');
 
 
 h2 = figure(2);
-set(h2,'position',[800 600 700 500]);
+%set(h2,'position',[800 600 700 500]);
 ax21 = subplot(1,1,1);
 
 % plot the gyroscope data
@@ -124,26 +126,28 @@ spintime = stoptime - starttime;
 disp(sprintf('Maximum spin rate = %.3f rad/s\n',maxspin));
 disp(sprintf('Time to stop spinning = %.3f sec\n',spintime));
 
+saveas(h2, fullfile(plotsDir,'M4L3_Fig2_gyroscope.png'));
+
 
 %% Magnetometer
 
-data3 = readtable('magnetometer_2025-10-19_13-03-56.csv');
+data3 = readtable('magnetometer.csv');
 
 
 h3 = figure(3);
-set(h3,'position',[800 600 1000 500]);
+%set(h3,'position',[800 600 1000 500]);
 ax31 = subplot(1,2,1);
 ax32 = subplot(1,2,2);
 
 % plot three components of magnetometer data
 plot(ax31,data3.time,data3.Bx,'r');
 hold(ax31,'on');
-plot(ax31,data3.time,data3.Bx,'g');
-plot(ax31,data3.time,data3.Bx,'b');
+plot(ax31,data3.time,data3.By,'g');
+plot(ax31,data3.time,data3.Bz,'b');
 
 
 
-legend(ax31,'a_x','a_y','a_z');
+legend(ax31,'B_x','B_y','B_z');
 
 % label your plots
 xlabel(ax31,'Time (s)');
@@ -151,43 +155,41 @@ ylabel(ax31,'Magnetic Field (uT)');
 title(ax31,'Magnetometer Data');
 
 % confirm that a_total is the vector norm of the three components:
-
 B_vecnorm = sqrt(data3.Bx.^2 + data3.By.^2 + data3.Bz.^2);          % complete this!
 
 % plot Btotal and B-vecnorm to compare
-
-plot(ax32,data3.time,data3.Btotal,'k');
+plot(ax32,data3.time,data3.Btotal,'r', 'LineWidth', 0.75);
 hold(ax32,'on');
 plot(ax32,data3.time,B_vecnorm,'b');
 
 legend(ax32,'B total from device','B vecnorm');
 
 % label your plots
-xlabel(ax31,'Time (s)');
-ylabel(ax31,'Magnetic Field Vector Norm(uT)');
-title(ax31,'Magnetometer Data Vector Norm');
+xlabel(ax32,'Time (s)');
+ylabel(ax32,'Magnetic Field Vector Norm(uT)');
+title(ax32,'Magnetometer Data Vector Norm');
 
 % figure out the maximum difference
 
 maxdiff = max(abs(data3.Btotal - B_vecnorm));    % complete this! 
 
 disp(sprintf('Maximum difference between B-total and vecnorm = %.3f uT\n',maxdiff));
+saveas(h3, fullfile(plotsDir,'M4L3_Fig3_magnetometer.png'));
 
 
 % get the average and standard deviation of each of the three components,
 % and for the magnitude,
 % but just for the time when it was sitting still:
 
-avgx = mean(data3.Bx(XX:XX));           % YOU WILL LIKELY NEED TO CHANGE THESE INDICES
+avgx = mean(data3.Bx(1:90));           % YOU WILL LIKELY NEED TO CHANGE THESE INDICES
+avgy = mean(data3.By(1:90));
+avgz = mean(data3.Bz(1:90));
+avgB = mean(data3.Btotal(1:90));
 
-XX
-XX
-XX
-
-stdx = 1000 * std(data3.Bx(XX:XX));
-XX
-XX
-XX
+stdx = 1000 * std(data3.Bx(1:90));
+stdy = 1000 * std(data3.By(1:90));
+stdz = 1000 * std(data3.Bz(1:90));
+stdB = 1000 * std(data3.Btotal(1:90));
 
 disp(sprintf('Averages: %.2f, %2.f, %.2f, %.2f uT\n',avgx,avgy,avgz,avgB));
 disp(sprintf('Standard deviations: %.2f, %2.f, %.2f, %.2f uT\n',stdx,stdy,stdz,stdB));
